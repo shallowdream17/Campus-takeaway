@@ -103,4 +103,19 @@ public class EmployeeServiceImpl implements EmployeeService {
         return pageResult;
     }
 
+
+    /**
+     * 启用、禁用员工账号
+     * @param status
+     * @param id
+     */
+    @Override
+    public void enableAndDisableAccount(Integer status, Long id) {
+
+        Employee updateEmployee = new Employee();
+        updateEmployee.setStatus(status);
+        updateEmployee.setId(id);
+        employeeMapper.updateById(updateEmployee);
+    }
+
 }

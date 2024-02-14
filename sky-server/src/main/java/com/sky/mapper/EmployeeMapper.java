@@ -6,6 +6,7 @@ import com.sky.result.PageResult;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -46,4 +47,11 @@ public interface EmployeeMapper {
      * @return
      */
     List<Employee> queryEmployee(String name, int startPageNum, int pageSize);
+
+
+    /**
+     * 根据id进行修改部分字段值
+     * @param updateEmployee
+     */
+    void updateById(Employee updateEmployee);
 }
