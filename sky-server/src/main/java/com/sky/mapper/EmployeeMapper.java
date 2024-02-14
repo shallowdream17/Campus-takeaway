@@ -1,5 +1,6 @@
 package com.sky.mapper;
 
+import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeePageQueryDTO;
 import com.sky.entity.Employee;
 import com.sky.result.PageResult;
@@ -54,4 +55,13 @@ public interface EmployeeMapper {
      * @param updateEmployee
      */
     void updateById(Employee updateEmployee);
+
+    /**
+     * 根据id查询员工
+     * @param id
+     * @return
+     */
+    @Select("select * from employee where id = #{id}")
+    Employee queryEmployeeById(Long id);
+
 }

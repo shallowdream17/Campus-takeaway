@@ -21,4 +21,8 @@ public interface EmployeeService {
     PageResult queryEmployee(EmployeePageQueryDTO employeePageQueryDTO);
 
     void enableAndDisableAccount(Integer status, Long id);
+
+    Employee queryEmployeeById(Long id);
+
+    void editEmployee(EmployeeDTO employeeDTO);
 }
