@@ -34,8 +34,8 @@
     <select id="count" resultType="Long">
         select count(*) from employee
         <where>
-            <if test="name != null">
-                name = #{name}
+            <if test="name != null and name != '' ">
+                name like concat('%',#{name},'%')
             </if>
         </where>
     </select>

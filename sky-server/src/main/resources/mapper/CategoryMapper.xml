@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sky.mapper.CategoryMapper">
+
+    <select id="count" resultType="java.lang.Long" parameterType="com.sky.dto.CategoryPageQueryDTO">
+        select count(*) from category
+        <where>
+            <if test="name != null and name != '' ">
+                name like concat('%',#{name},'%')
+            </if>
+            <if test="type != null ">
+                and type = #{type}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryCategory" resultType="com.sky.entity.Category">
+        select * from category
+        <where>
+            <if test="name != null and name != '' ">
+                name like concat('%',#{name},'%')
+            </if>
+            <if test="type != null ">
+                and type = #{type}
+            </if>
+        </where>
+        order by update_time desc
+        limit #{startPageNum},#{pageSize}
+    </select>
+
+</mapper>
