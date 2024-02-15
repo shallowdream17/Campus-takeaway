@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/admin/category")
 @Slf4j
@@ -35,4 +37,38 @@ public class CategoryController {
         PageResult pageResult = categoryService.queryCategory(categoryPageQueryDTO);
         return Result.success(pageResult);
     }
+
+    @PostMapping("/status/{status}")
+    @ApiOperation("启用、禁用分类")
+    public Result enableAndDisableCategory(@PathVariable Integer status,Long id){
+        log.info("修改员工账号状态");
+        categoryService.enableAndDisableCategory(status,id);
+        return Result.success();
+    }
+
+    @DeleteMapping()
+    @ApiOperation("删除分类")
+    public Result deleteCategory(Long id){
+        log.info("删除分类{}",id);
+        categoryService.deleteCategory(id);
+        return Result.success();
+    }
+
+    @PutMapping()
+    @ApiOperation("修改分类")
+    public Result updateCategory(@RequestBody CategoryDTO categoryDTO){
+        log.info("修改分类{}",categoryDTO);
+        categoryService.updateCategory(categoryDTO);
+        return Result.success();
+    }
+
+
+    @GetMapping("/list")
+    @ApiOperation("根据类型查询分类")
+    public Result queryByType(Integer type){
+        log.info("查询{}分类",type);
+        List<Category> list = categoryService.queryByType(type);
+        return Result.success(list);
+    }
+
  }

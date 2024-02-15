@@ -1,11 +1,13 @@
 package com.sky.service.impl;
 
+import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.context.BaseContext;
 import com.sky.dto.CategoryDTO;
 import com.sky.dto.CategoryPageQueryDTO;
 import com.sky.entity.Category;
 import com.sky.entity.Employee;
+import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.CategoryMapper;
 import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealMapper;
@@ -62,5 +64,62 @@ public class CategoryServiceImpl implements CategoryService {
         List<Category> categoryList = categoryMapper.queryCategory(categoryPageQueryDTO.getName(),categoryPageQueryDTO.getType(),startPageNum,categoryPageQueryDTO.getPageSize());
         PageResult pageResult = new PageResult(count,categoryList);
         return pageResult;
+    }
+
+    /**
+     * 启用、禁用分类
+     * @param status
+     * @param id
+     */
+    @Override
+    public void enableAndDisableCategory(Integer status, Long id) {
+        Category category = new Category();
+        category.setStatus(status);
+        category.setId(id);
+        categoryMapper.updateById(category);
+    }
+
+
+    /**
+     * 删除分类
+     * @param id
+     */
+    @Override
+    public void deleteCategory(Long id) {
+        Integer count;
+        count = dishMapper.getCountByCategoryId(id);
+        if(count > 0){
+            //当前分类下有菜品，不能删除
+            throw new DeletionNotAllowedException(MessageConstant.CATEGORY_BE_RELATED_BY_DISH);
+        }
+        count = setmealMapper.getCountByCategoryId(id);
+        if(count > 0){
+            //当前分类下有菜品，不能删除
+            throw new DeletionNotAllowedException(MessageConstant.CATEGORY_BE_RELATED_BY_SETMEAL);
+        }
+        categoryMapper.deleteCategory(id);
+    }
+
+    /**
+     * 修改分类
+     * @param categoryDTO
+     */
+    @Override
+    public void updateCategory(CategoryDTO categoryDTO) {
+        Category category = new Category();
+        BeanUtils.copyProperties(categoryDTO,category);
+        category.setUpdateTime(LocalDateTime.now());
+        category.setUpdateUser(BaseContext.getCurrentId());
+        categoryMapper.updateById(category);
+    }
+
+    /**
+     * 根据类型查询分类
+     * @param type
+     * @return
+     */
+    @Override
+    public List<Category> queryByType(Integer type) {
+        return categoryMapper.queryByType(type);
     }
 }
