@@ -7,6 +7,28 @@
         insert into dish (name, category_id, price, image, description, status, create_time, update_time, create_user, update_user)
         VALUES (#{name},#{categoryId},#{price},#{image},#{description},#{status},#{createTime},#{updateTime},#{createUser},#{updateUser})
     </insert>
+    <update id="updateById">
+        update dish
+        <set>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="image != null">image = #{image},</if>
+            <if test="name !=null and name !='' ">name = #{name},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="updateUser != null">update_user = #{updateUser},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from dish
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
     <select id="pageQueryCount" resultType="java.lang.Long">
         select count(*) from dish
         <where>
@@ -37,4 +59,18 @@
         order by update_time desc
         limit #{startPage},#{pageSize}
     </select>
+
+    <select id="queryOnSaleDishCount" resultType="java.lang.Long">
+        select count(*) from dish
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")" >
+            #{id}
+        </foreach>
+        and status = 1
+    </select>
+
+    <select id="queryById" resultType="com.sky.entity.Dish">
+        select * from dish where id = #{id}
+    </select>
+
 </mapper>
