@@ -1,6 +1,7 @@
 package com.sky.mapper;
 
 import com.sky.annotation.AutoFill;
+import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
 import com.sky.entity.Setmeal;
 import com.sky.enumeration.OperationType;
@@ -29,4 +30,9 @@ public interface SetmealMapper {
     void deleteSetmeal(Long[] ids);
 
     int queryOnSaleCountByIds(Long[] ids);
+
+    Setmeal queryById(Long id);
+
+    @AutoFill(value = OperationType.INSERT)
+    void updateSetmeal(Setmeal setmeal);
 }
