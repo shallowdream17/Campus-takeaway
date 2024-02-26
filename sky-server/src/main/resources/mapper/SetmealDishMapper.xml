@@ -2,6 +2,14 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.sky.mapper.SetmealDishMapper">
+    <insert id="addSetmealDish">
+        insert into setmeal_dish
+        (setmeal_id,dish_id,name,price,copies)
+        VALUES
+        <foreach collection="setmealDishes" item="st" separator=",">
+            (#{st.setmealId},#{st.dishId},#{st.name},#{st.price},#{st.copies})
+        </foreach>
+    </insert>
 
     <select id="queryCountByDishId" resultType="java.lang.Long">
         select count(*) from setmeal_dish
