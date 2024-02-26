@@ -25,4 +25,8 @@ public interface SetmealMapper {
 
 
     List<SetmealVO> setmealPageQuery(int startPageNum, int pageSize, String name, Integer status, Integer categoryId);
+
+    void deleteSetmeal(Long[] ids);
+
+    int queryOnSaleCountByIds(Long[] ids);
 }

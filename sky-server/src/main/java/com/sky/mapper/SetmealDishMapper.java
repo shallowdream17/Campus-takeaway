@@ -16,4 +16,6 @@ public interface SetmealDishMapper {
     Long queryCountByDishId(Long[] ids);
 
     void addSetmealDish(List<SetmealDish> setmealDishes);
+
+    void deleteBySetmealIds(Long[] ids);
 }

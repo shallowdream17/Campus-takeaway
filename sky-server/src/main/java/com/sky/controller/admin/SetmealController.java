@@ -38,4 +38,20 @@ public class SetmealController {
         return Result.success(pageResult);
     }
 
+    @DeleteMapping()
+    @ApiOperation("批量删除套餐")
+    public Result deleteSetmeal(Long[] ids){
+        log.info("删除套餐{}",ids);
+        setmealService.deleteSetmeal(ids);
+        return Result.success();
+    }
+
+    @PostMapping("/status/{status}")
+    @ApiOperation("起售、停售套餐")
+    public Result enableAndDisableSetmeal(@PathVariable Integer status,Long id){
+        log.info("套餐{}状态设置为{}",id,status);
+        setmealService.enableAndDisableSetmeal(status,id);
+        return Result.success();
+    }
+
 }
