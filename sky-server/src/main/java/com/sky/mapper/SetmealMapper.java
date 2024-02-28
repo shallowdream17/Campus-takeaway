@@ -37,6 +37,6 @@ public interface SetmealMapper {
     void updateSetmeal(Setmeal setmeal);
 
 
-    @Select("select * from setmeal where category_id = #{categoryId}")
+    @Select("select * from setmeal where category_id = #{categoryId} and status = 1")
     List<Setmeal> queryByCategoryIdInC(Long categoryId);
 }
