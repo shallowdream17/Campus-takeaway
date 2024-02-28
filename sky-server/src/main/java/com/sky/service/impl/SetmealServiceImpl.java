@@ -132,4 +132,14 @@ public class SetmealServiceImpl implements SetmealService {
         }
         setmealDishMapper.addSetmealDish(setmealDishList);
     }
+
+    /**
+     * C端-根据分类id查询套餐
+     * @return
+     */
+    @Override
+    public List<Setmeal> queryByCategoryIdInC(Long categoryId) {
+        List<Setmeal> setmealList = setmealMapper.queryByCategoryIdInC(categoryId);
+        return setmealList;
+    }
 }

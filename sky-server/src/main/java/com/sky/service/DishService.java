@@ -5,6 +5,7 @@ import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.result.PageResult;
+import com.sky.vo.DishItemVO;
 import com.sky.vo.DishVO;
 import org.springframework.stereotype.Service;
 
@@ -26,4 +27,8 @@ public interface DishService {
     void enableAndDisableDish(Integer status, Long id);
 
     List<Dish> queryByCategoryId(Long categoryId);
+
+    List<DishVO> queryDishByCategoryIdInC(Long categoryId);
+
+    List<DishItemVO> queryDishBySetmealId(Long id);
 }

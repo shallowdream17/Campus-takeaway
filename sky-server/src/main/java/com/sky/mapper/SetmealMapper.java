@@ -35,4 +35,8 @@ public interface SetmealMapper {
 
     @AutoFill(value = OperationType.INSERT)
     void updateSetmeal(Setmeal setmeal);
+
+
+    @Select("select * from setmeal where category_id = #{categoryId}")
+    List<Setmeal> queryByCategoryIdInC(Long categoryId);
 }

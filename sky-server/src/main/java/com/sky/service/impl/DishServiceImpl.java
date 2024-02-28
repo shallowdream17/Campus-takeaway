@@ -11,12 +11,14 @@ import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
 import com.sky.result.PageResult;
 import com.sky.service.DishService;
+import com.sky.vo.DishItemVO;
 import com.sky.vo.DishVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -152,5 +154,39 @@ public class DishServiceImpl implements DishService {
     public List<Dish> queryByCategoryId(Long categoryId) {
         List<Dish> list = dishMapper.queryByCategoryId(categoryId);
         return list;
+    }
+
+    /**
+     * C端-根据分类id查询菜品
+     * @param categoryId
+     * @return
+     */
+    @Override
+    public List<DishVO> queryDishByCategoryIdInC(Long categoryId) {
+        List<Dish> dishList = dishMapper.queryByCategoryId(categoryId);
+
+        List<DishVO> dishVOList = new ArrayList<>();
+
+        for(Dish dish:dishList){
+            List<DishFlavor> dishFlavorList = dishFlavorMapper.queryByDishId(dish.getId());
+
+            DishVO dishVO = new DishVO();
+            BeanUtils.copyProperties(dish,dishVO);
+            dishVO.setFlavors(dishFlavorList);
+            dishVOList.add(dishVO);
+        }
+
+        return dishVOList;
+    }
+
+    /**
+     * C端-根据套餐id查询包含的菜品
+     * @param id
+     * @return
+     */
+    @Override
+    public List<DishItemVO> queryDishBySetmealId(Long id) {
+        List<DishItemVO> dishItemVOList = setmealDishMapper.queryDishBySetmealId(id);
+        return dishItemVOList;
     }
 }
