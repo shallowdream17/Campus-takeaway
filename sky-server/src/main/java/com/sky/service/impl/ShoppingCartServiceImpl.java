@@ -11,6 +11,7 @@ import com.sky.mapper.ShoppingCartMapper;
 import com.sky.service.ShoppingCartService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -38,7 +39,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         List<ShoppingCart> shoppingCartList = shoppingCartMapper.queryByDishIdAndSetmealId(shoppingCart);
         //如果本来就在购物车中，则数量加一
         if(shoppingCartList != null && shoppingCartList.size()>0){
-            shoppingCartMapper.increaseNumberById(shoppingCartList.get(0).getId(),shoppingCartList.get(0).getNumber()+1);
+            shoppingCartMapper.updateNumberById(shoppingCartList.get(0).getId(),shoppingCartList.get(0).getNumber()+1);
             return;
         }
         //若不在购物车中，则将其添加到购物车中
@@ -58,5 +59,44 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         shoppingCart.setNumber(1);
         shoppingCart.setCreateTime(LocalDateTime.now());
         shoppingCartMapper.addShoppingCart(shoppingCart);
+    }
+
+    /**
+     * 查看购物车
+     * @return
+     */
+    @Override
+    public List<ShoppingCart> lookShoppingCart() {
+        Long userId = BaseContext.getCurrentId();
+        List<ShoppingCart> shoppingCartList = shoppingCartMapper.lookShoppingCart(userId);
+        return shoppingCartList;
+    }
+
+    /**
+     * 清空购物车
+     */
+    @Override
+    public void cleanShoppingCart() {
+        Long userId = BaseContext.getCurrentId();
+        shoppingCartMapper.cleanShoppingCart(userId);
+    }
+
+    /**
+     * 删除购物车
+     * @param shoppingCartDTO
+     */
+    @Override
+    public void deleteShoppingCart(ShoppingCartDTO shoppingCartDTO) {
+        ShoppingCart shoppingCart = new ShoppingCart();
+        BeanUtils.copyProperties(shoppingCartDTO,shoppingCart);
+        shoppingCart.setUserId(BaseContext.getCurrentId());
+
+        List<ShoppingCart> shoppingCartList = shoppingCartMapper.queryByDishIdAndSetmealId(shoppingCart);
+        ShoppingCart deleteCart = shoppingCartList.get(0);
+        if(deleteCart.getNumber()>1){
+            shoppingCartMapper.updateNumberById(deleteCart.getId(),deleteCart.getNumber()-1);
+        }else{
+            shoppingCartMapper.deleteShoppingCartById(deleteCart.getId());
+        }
     }
 }
