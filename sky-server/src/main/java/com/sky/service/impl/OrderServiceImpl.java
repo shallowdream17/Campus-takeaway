@@ -2,6 +2,7 @@ package com.sky.service.impl;
 
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.AddressBook;
 import com.sky.entity.OrderDetail;
@@ -14,8 +15,10 @@ import com.sky.mapper.AddressBookMapper;
 import com.sky.mapper.OrderDetailMapper;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.ShoppingCartMapper;
+import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.OrderVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +41,11 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private ShoppingCartMapper shoppingCartMapper;
 
+    /**
+     * 用户下单
+     * @param ordersSubmitDTO
+     * @return
+     */
     @Override
     @Transactional
     public OrderSubmitVO submit(OrdersSubmitDTO ordersSubmitDTO) {
@@ -81,5 +89,58 @@ public class OrderServiceImpl implements OrderService {
                 .orderTime(orders.getOrderTime())
                 .build();
         return orderSubmitVO;
+    }
+
+    /**
+     * 用户成功支付
+     * @param ordersPaymentDTO
+     */
+    @Override
+    public void paymentSuccess(OrdersPaymentDTO ordersPaymentDTO) {
+        //先查询该订单是否存在且未支付
+        Orders orders = orderMapper.queryByOrderNumber(ordersPaymentDTO.getOrderNumber());
+        //若订单不存在
+        if(orders == null){
+            throw new RuntimeException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        //若该订单存在，但是已经支付过了
+        if(orders.getPayStatus()==Orders.PAID){
+            throw new OrderBusinessException("订单已支付!");
+        }
+        //支付成功
+        Orders successOrder = Orders.builder()
+                .id(orders.getId())
+                .status(Orders.TO_BE_CONFIRMED)
+                .payStatus(Orders.PAID)
+                .checkoutTime(LocalDateTime.now())
+                .build();
+        orderMapper.updateOrder(successOrder);
+    }
+
+    /**
+     * 查询历史订单
+     * @param page
+     * @param pageSize
+     * @param status
+     * @return
+     */
+    @Override
+    public PageResult queryHistoryOrders(int page, int pageSize, Integer status) {
+        Long userId = BaseContext.getCurrentId();
+        Long count = orderMapper.queryHistoryOrdersCount(userId,status);
+        int startPageNum = (page - 1) * pageSize;
+        List<Orders> ordersList = orderMapper.queryHistoryOrders(startPageNum,pageSize,status,userId);
+        List<OrderVO> orderVOList = new ArrayList<>();
+        for(Orders ol:ordersList){
+            List<OrderDetail> orderDetailList = orderDetailMapper.queryOrderId(ol.getId());
+            OrderVO orderVO = new OrderVO();
+            BeanUtils.copyProperties(ol,orderVO);
+            orderVO.setOrderDetailList(orderDetailList);
+            orderVOList.add(orderVO);
+        }
+        PageResult pageResult = new PageResult();
+        pageResult.setTotal(count);
+        pageResult.setRecords(orderVOList);
+        return pageResult;
     }
 }
