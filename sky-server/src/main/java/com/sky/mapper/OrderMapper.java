@@ -21,4 +21,7 @@ public  interface OrderMapper {
     Long queryHistoryOrdersCount(Long userId, Integer status);
 
     List<Orders> queryHistoryOrders(int startPageNum, int pageSize, Integer status,Long userId);
+
+    @Select("select * from orders where id = #{id}")
+    Orders queryById(Long id);
 }
