@@ -61,4 +61,27 @@
         limit #{startPageNum},#{pageSize}
     </select>
 
+    <select id="conditionSearchCount" resultType="java.lang.Long">
+        select count(*) from orders
+        <where>
+            <if test="status != null">status = #{status}</if>
+            <if test="number != null">and number = #{number}</if>
+            <if test="phone != null and phone != ''">and phone like concat('%',#{phone},'%')</if>
+            <if test="beginTime != null">and order_time >= #{beginTime}</if>
+            <if test="endTime != null">and #{endTime} >= order_time</if>
+        </where>
+    </select>
+    <select id="conditionSearch" resultType="com.sky.entity.Orders">
+        select * from orders
+        <where>
+            <if test="opqd.status != null">status = #{opqd.status}</if>
+            <if test="opqd.number != null">and number = #{opqd.number}</if>
+            <if test="opqd.phone != null and opqd.phone != ''">and phone like concat('%',#{opqd.phone},'%')</if>
+            <if test="opqd.beginTime != null">and order_time >= #{opqd.beginTime}</if>
+            <if test="opqd.endTime != null">and #{opqd.endTime} >= order_time</if>
+        </where>
+        order by order_time desc
+        limit #{startPageNum},#{opqd.pageSize}
+    </select>
+
 </mapper>

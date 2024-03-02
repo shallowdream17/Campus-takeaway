@@ -1,5 +1,6 @@
 package com.sky.mapper;
 
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.entity.Orders;
 import com.sky.result.PageResult;
 import org.apache.ibatis.annotations.Insert;
@@ -24,4 +25,8 @@ public  interface OrderMapper {
 
     @Select("select * from orders where id = #{id}")
     Orders queryById(Long id);
+
+    Long conditionSearchCount(OrdersPageQueryDTO ordersPageQueryDTO);
+
+    List<Orders> conditionSearch(int startPageNum,OrdersPageQueryDTO opqd);
 }

@@ -2,6 +2,7 @@ package com.sky.service.impl;
 
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.AddressBook;
@@ -71,6 +72,7 @@ public class OrderServiceImpl implements OrderService {
         orders.setPhone(addressBook.getPhone());
         orders.setConsignee(addressBook.getConsignee());
         orders.setUserId(userId);
+        orders.setAddress(addressBook.getDetail());
         orderMapper.addOrder(orders);
         //向订单明细表插入n条数据
         List<OrderDetail> orderDetailList = new ArrayList<>();
@@ -192,6 +194,10 @@ public class OrderServiceImpl implements OrderService {
         orderMapper.updateOrder(newOrder);
     }
 
+    /**
+     * 再来一单
+     * @param id
+     */
     @Override
     public void repetition(Long id) {
         List<OrderDetail> orderDetailList = orderDetailMapper.queryOrderId(id);
@@ -206,5 +212,50 @@ public class OrderServiceImpl implements OrderService {
         }
         // 购物车批量插入
         shoppingCartMapper.addBatch(shoppingCartList);
+    }
+
+
+    /**
+     * 管理端订单搜索
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    @Override
+    public PageResult conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO) {
+         Long count = orderMapper.conditionSearchCount(ordersPageQueryDTO);
+         int startPageNum = (ordersPageQueryDTO.getPage()-1)*ordersPageQueryDTO.getPageSize();
+         List<Orders> ordersList = orderMapper.conditionSearch(startPageNum,ordersPageQueryDTO);
+         List<OrderVO> orderVOList = new ArrayList<>();
+         if(ordersList!=null&&ordersList.size()>0){
+             for(Orders odl:ordersList){
+                 OrderVO orderVO = new OrderVO();
+                 List<OrderDetail> orderDetailList = orderDetailMapper.queryOrderId(odl.getId());
+                 BeanUtils.copyProperties(odl,orderVO);
+                 String orderDishes = getOrderDishes(orderDetailList);
+                 orderVO.setOrderDishes(orderDishes);
+                 orderVOList.add(orderVO);
+             }
+         }
+
+         PageResult pageResult = new PageResult();
+         pageResult.setTotal(count);
+         pageResult.setRecords(orderVOList);
+         return pageResult;
+    }
+
+    /**
+     * 组合菜品信息字符串
+     * @param orderDetailList
+     * @return
+     */
+    private String getOrderDishes(List<OrderDetail> orderDetailList) {
+        if(orderDetailList!=null&&orderDetailList.size()>0){
+            String result = new String();
+            for(OrderDetail odd:orderDetailList){
+                result += odd.getName()+"*"+odd.getNumber()+";";
+            }
+            return result;
+        }
+        return null;
     }
 }
