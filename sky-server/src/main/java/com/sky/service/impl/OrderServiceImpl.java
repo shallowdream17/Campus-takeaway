@@ -24,7 +24,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
+
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -159,5 +159,52 @@ public class OrderServiceImpl implements OrderService {
         BeanUtils.copyProperties(orders,orderVO);
         orderVO.setOrderDetailList(orderDetailList);
         return orderVO;
+    }
+
+    /**
+     * 取消订单
+     * @param id
+     */
+    @Override
+    public void cancelOrder(Long id) {
+        Orders orders = orderMapper.queryById(id);
+        //订单不存在 无法取消订单
+        if(orders == null){
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        //订单状态 1待付款 2待接单 3已接单 4派送中 5已完成 6已取消
+        //只有前两种状态能取消
+        if(orders.getStatus() > 2){
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        Orders newOrder = new Orders();
+        newOrder.setId(orders.getId());
+        //待接单状态下的订单取消后需要退款
+        if(orders.getStatus().equals(Orders.TO_BE_CONFIRMED)){
+            //这里直接退款,将其状态设置为退款
+            newOrder.setPayStatus(Orders.REFUND);
+        }
+
+        // 更新订单状态、取消原因、取消时间
+        newOrder.setStatus(Orders.CANCELLED);
+        newOrder.setCancelTime(LocalDateTime.now());
+        newOrder.setCancelReason("用户取消");
+        orderMapper.updateOrder(newOrder);
+    }
+
+    @Override
+    public void repetition(Long id) {
+        List<OrderDetail> orderDetailList = orderDetailMapper.queryOrderId(id);
+        List<ShoppingCart> shoppingCartList = new ArrayList<>();
+        Long userId = BaseContext.getCurrentId();
+        for(OrderDetail odl:orderDetailList){
+            ShoppingCart shoppingCart = new ShoppingCart();
+            BeanUtils.copyProperties(odl,shoppingCart,"id");
+            shoppingCart.setUserId(userId);
+            shoppingCart.setCreateTime(LocalDateTime.now());
+            shoppingCartList.add(shoppingCart);
+        }
+        // 购物车批量插入
+        shoppingCartMapper.addBatch(shoppingCartList);
     }
 }
