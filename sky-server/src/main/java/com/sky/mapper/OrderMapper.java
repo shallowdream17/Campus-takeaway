@@ -29,4 +29,7 @@ public  interface OrderMapper {
     Long conditionSearchCount(OrdersPageQueryDTO ordersPageQueryDTO);
 
     List<Orders> conditionSearch(int startPageNum,OrdersPageQueryDTO opqd);
+
+    @Select("select count(*) from orders where status = #{status}")
+    Integer queryStatusQuantity(Integer status);
 }
