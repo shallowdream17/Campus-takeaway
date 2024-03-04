@@ -5,6 +5,8 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.Map;
+
 @Mapper
 public interface UserMapper {
 
@@ -21,4 +23,11 @@ public interface UserMapper {
      * @param user
      */
     void insert(User user);
+
+    /**
+     * 查询用户数量和新增数量
+     * @param map
+     * @return
+     */
+    Integer getUserStatistics(Map map);
 }

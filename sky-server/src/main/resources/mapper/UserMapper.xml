@@ -8,4 +8,15 @@
         insert into user (openid,create_time)
         VALUES (#{openid},#{createTime})
     </insert>
+    <select id="getUserStatistics" resultType="java.lang.Integer">
+        select count(*) from user
+        <where>
+            <if test="end != null">
+                create_time &lt;= #{end}
+            </if>
+            <if test="begin != null">
+                and create_time &gt;= #{begin}
+            </if>
+        </where>
+    </select>
 </mapper>
