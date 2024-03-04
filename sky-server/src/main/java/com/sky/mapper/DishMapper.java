@@ -80,4 +80,7 @@ public interface DishMapper {
      */
     @Select("select * from dish where category_id = #{categoryId} and status = 1")
     List<Dish> queryByCategoryId(Long categoryId);
+
+    @Select("select count(*) from dish where status = #{status}")
+    Integer getDishCountByStatus(int status);
 }
