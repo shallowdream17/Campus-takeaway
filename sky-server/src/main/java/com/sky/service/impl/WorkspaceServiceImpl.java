@@ -1,6 +1,7 @@
 package com.sky.service.impl;
 
 import com.sky.constant.MessageConstant;
+import com.sky.constant.StatusConstant;
 import com.sky.entity.Orders;
 import com.sky.mapper.*;
 import com.sky.service.WorkspaceService;
@@ -15,6 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.apache.commons.collections4.MapUtils.getMap;
@@ -52,6 +54,9 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         }
         //计算当日营业额
         Double turnover = reportMapper.getTurnoverStatistics(map);
+        if(turnover==null){
+            turnover = 0.0;
+        }
         //计算平均客单价
         Double unitPrice = 0.0;
         if(validOrderCount!=0){
@@ -104,9 +109,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
      */
     @Override
     public DishOverViewVO getOverviewDishes() {
-        // TODO 常量修改
-        Integer discontinued = dishMapper.getDishCountByStatus(0);
-        Integer sold = dishMapper.getDishCountByStatus(1);
+        Integer discontinued = dishMapper.getDishCountByStatus(StatusConstant.DISABLE);
+        Integer sold = dishMapper.getDishCountByStatus(StatusConstant.ENABLE);
         DishOverViewVO dishOverViewVO = DishOverViewVO.builder()
                 .discontinued(discontinued)
                 .sold(sold)
@@ -120,14 +124,48 @@ public class WorkspaceServiceImpl implements WorkspaceService {
      */
     @Override
     public SetmealOverViewVO getOverviewSetmeals() {
-        // TODO 常量修改
-        Integer discontinued = setmealMapper.getSetmealCountByStatus(0);
-        Integer sold = setmealMapper.getSetmealCountByStatus(1);
+        Integer discontinued = setmealMapper.getSetmealCountByStatus(StatusConstant.DISABLE);
+        Integer sold = setmealMapper.getSetmealCountByStatus(StatusConstant.ENABLE);
         SetmealOverViewVO setmealOverViewVO = SetmealOverViewVO.builder()
                 .discontinued(discontinued)
                 .sold(sold)
                 .build();
         return setmealOverViewVO;
+    }
+
+    @Override
+    public BusinessDataVO getBusinessDataBatch(LocalDateTime of, LocalDateTime of1) {
+        Map map = new HashMap<>();
+        map.put("begin",of);
+        map.put("end",of1);
+        //计算当日新增用户
+        Integer newUsers = userMapper.getUserStatistics(map);
+        //计算当日订单完成率
+        Integer orderCount = orderMapper.getOrderStatistics(map);
+        map.put("status", Orders.COMPLETED);
+        Integer validOrderCount = orderMapper.getOrderStatistics(map);
+        double orderCompletionRate = 0.0;
+        if(orderCount!=0){
+            orderCompletionRate = validOrderCount.doubleValue()/orderCount.doubleValue();
+        }
+        //计算当日营业额
+        Double turnover = reportMapper.getTurnoverStatistics(map);
+        if(turnover==null){
+            turnover = 0.0;
+        }
+        //计算平均客单价
+        Double unitPrice = 0.0;
+        if(validOrderCount!=0){
+            unitPrice = turnover/validOrderCount.doubleValue();
+        }
+        BusinessDataVO businessDataVO = BusinessDataVO.builder()
+                .newUsers(newUsers)
+                .orderCompletionRate(orderCompletionRate)
+                .turnover(turnover)
+                .unitPrice(unitPrice)
+                .validOrderCount(validOrderCount)
+                .build();
+        return businessDataVO;
     }
 
 

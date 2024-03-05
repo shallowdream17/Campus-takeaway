@@ -8,15 +8,18 @@ import com.sky.mapper.OrderMapper;
 import com.sky.mapper.ReportMapper;
 import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
-import com.sky.vo.OrderReportVO;
-import com.sky.vo.SalesTop10ReportVO;
-import com.sky.vo.TurnoverReportVO;
-import com.sky.vo.UserReportVO;
+import com.sky.service.WorkspaceService;
+import com.sky.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,6 +35,8 @@ public class ReportServiceImpl implements ReportService {
     private UserMapper userMapper;
     @Autowired
     private OrderMapper orderMapper;
+    @Autowired
+    private WorkspaceService workspaceService;
 
     @Override
     public TurnoverReportVO getTurnoverStatistics(LocalDate begin, LocalDate end) {
@@ -147,6 +152,69 @@ public class ReportServiceImpl implements ReportService {
                 .numberList(StringUtils.join(numberList,","))
                 .build();
         return salesTop10ReportVO;
+    }
+
+    /**
+     * 导出运营数据报表
+     * @param response
+     */
+    @Override
+    public void exportBusinessData(HttpServletResponse response) {
+        //1.查询数据库，获取营业数据---查询最近30天的营业数据
+        LocalDate beginTime = LocalDate.now().minusDays(30);
+        LocalDate endTime = LocalDate.now().minusDays(1);
+        //查询概览数据
+        BusinessDataVO businessDataVOAll = workspaceService.getBusinessDataBatch(LocalDateTime.of(beginTime,LocalTime.MIN),LocalDateTime.of(endTime,LocalTime.MAX));
+        //2.通过POI将数据写入excel文件中
+        //InputStream in = this.getClass().getClassLoader().getResourceAsStream("/template/运营数据报表模版.xlsx");
+        File file = new File("/Users/yuqi/IdeaProjects/sky-take-out/sky-server/src/main/resources/template/运营数据报表模板.xlsx");
+        InputStream in = null;
+        try {
+            in = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        if(in==null){
+            System.out.println("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk");
+        }
+
+        try{
+            //基于模版文件创建一个新的excel文件
+            XSSFWorkbook excel = new XSSFWorkbook(in);
+            //获取表格文件sheet页
+            XSSFSheet sheet = excel.getSheet("sheet1");
+            //填充数据---时间
+            sheet.getRow(1).getCell(1).setCellValue("时间: "+beginTime+" 至 "+endTime);
+
+            sheet.getRow(3).getCell(2).setCellValue(businessDataVOAll.getTurnover());
+            sheet.getRow(3).getCell(4).setCellValue(businessDataVOAll.getOrderCompletionRate());
+            sheet.getRow(3).getCell(6).setCellValue(businessDataVOAll.getNewUsers());
+            sheet.getRow(4).getCell(2).setCellValue(businessDataVOAll.getValidOrderCount());
+            sheet.getRow(4).getCell(4).setCellValue(businessDataVOAll.getUnitPrice());
+
+            LocalDate date = LocalDate.now().minusDays(30);
+            int baseDate = 7;
+            for(int i=0;i<30;i++){
+                BusinessDataVO businessDataNow = workspaceService.getBusinessDataBatch(LocalDateTime.of(date, LocalTime.MIN), LocalDateTime.of(date, LocalTime.MAX));
+                sheet.getRow(baseDate+i).getCell(1).setCellValue(date.toString());
+                sheet.getRow(baseDate+i).getCell(2).setCellValue(businessDataNow.getTurnover());
+                sheet.getRow(baseDate+i).getCell(3).setCellValue(businessDataNow.getValidOrderCount());
+                sheet.getRow(baseDate+i).getCell(4).setCellValue(businessDataNow.getOrderCompletionRate());
+                sheet.getRow(baseDate+i).getCell(5).setCellValue(businessDataNow.getUnitPrice());
+                sheet.getRow(baseDate+i).getCell(6).setCellValue(businessDataNow.getNewUsers());
+                date= date.plusDays(1);
+            }
+
+            //3. 通过输出流将excel下载到客户端浏览器
+            ServletOutputStream outputStream = response.getOutputStream();
+            excel.write(outputStream);
+
+            //关闭资源
+            outputStream.close();;
+            excel.close();
+        }catch (IOException e){
+
+        }
     }
 
     private void judgeParameters(LocalDate begin, LocalDate end) {
